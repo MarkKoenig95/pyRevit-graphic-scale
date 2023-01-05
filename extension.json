@@ -1,0 +1,14 @@
+{
+  "builtin": "True",
+  "default_enabled": "False",
+  "type": "extension",
+  "rocket_mode_compatible": "True",
+  "name": "OTIE Tools",
+  "description": "PyRevit Tools Developed by OTIE",
+  "author": "Mark Koenig",
+  "author_profile": "https://markkoenig.dev",
+  "url": "https://github.com/eirannejad/pyRevit.git",
+  "website": "https://markkoenig.dev",
+  "image": "",
+  "dependencies": []
+}
