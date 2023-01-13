@@ -6,7 +6,7 @@ import os
 import sys
 
 absolute_path = os.path.dirname(os.path.abspath(__file__))
-relative_path = '\pyRevit.tab\OTIE.panel\Graphic Scale.pushbutton'
+relative_path = '\pyRevit.tab\Drawing Set.panel\Graphic Scale.pushbutton'
 graphic_scale_utilities_path = absolute_path + relative_path
 sys.path.insert(1, graphic_scale_utilities_path)
 
