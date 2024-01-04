@@ -3,49 +3,9 @@ from System import Guid
 from pyrevit.framework import wpf
 import os.path as op
 from  System.Windows import Media
+from pipe_data_utilities import get_pipe_data
 
-black = DB.Color(0,0,0)
 white = DB.Color(255,255,255)
-
-class PipeSize:
-    def __init__(self, name, value, color):
-        self.name = name
-        self.value = value
-        self.color = color
-
-pipe_sizes = [
-    PipeSize("1/2",   0.042, DB.Color(255, 0, 0)),
-    PipeSize("3/4",   0.063, DB.Color(0, 255, 0)),
-    PipeSize("1",     0.084, DB.Color(0, 170, 221)),
-    PipeSize("1 1/4", 0.105, DB.Color(255, 255, 0)),
-    PipeSize("1 1/2", 0.126, DB.Color(255, 0, 255)),
-    PipeSize("2",     0.167, DB.Color(0, 255, 255)),
-    PipeSize("2 1/2", 0.209, DB.Color(255, 130, 0)),
-    PipeSize("3",     0.251, DB.Color(130, 0, 255)),
-    PipeSize("4",     0.334, DB.Color(130, 130, 0)),
-    PipeSize("6",     0.501, DB.Color(119, 187, 17)),
-    PipeSize("8",     0.667, DB.Color(238, 0, 102)),
-    PipeSize("10",    0.834, DB.Color(0, 66, 130 )),
-    PipeSize("12",    1.001, DB.Color(192, 192, 192)),
-]
-
-class PipeData:
-    def __init__(self, size, max_fu, color):
-        self.size = size
-        self.max_fu = max_fu
-        self.color = color
-
-pipe_data = [
-        PipeData(pipe_sizes[0].value, 4, pipe_sizes[0].color),
-        PipeData(pipe_sizes[1].value, 8, pipe_sizes[1].color),
-        PipeData(pipe_sizes[2].value, 12, pipe_sizes[2].color),
-        PipeData(pipe_sizes[3].value, 17, pipe_sizes[3].color),
-        PipeData(pipe_sizes[4].value, 22, pipe_sizes[4].color),
-        PipeData(pipe_sizes[5].value, 37, pipe_sizes[5].color),
-        PipeData(pipe_sizes[6].value, 86, pipe_sizes[6].color),
-        PipeData(pipe_sizes[7].value, 200, pipe_sizes[7].color),
-        PipeData(pipe_sizes[8].value, 561, pipe_sizes[8].color),
-]
 
 def set_line_color_for_element(element_id, document, color):
     ogs = DB.OverrideGraphicSettings()
@@ -56,13 +16,9 @@ def reset_line_color_for_element(element_id, document):
     ogs = DB.OverrideGraphicSettings()
     document.ActiveView.SetElementOverrides(element_id, ogs)
     
-def colorize_one_pipe(pipe, document):
+def colorize_one_pipe(pipe, document, pipe_data):
     fixture_units = pipe.get_Parameter(DB.BuiltInParameter.RBS_PIPE_FIXTURE_UNITS_PARAM).AsDouble()
     diameter = pipe.get_Parameter(DB.BuiltInParameter.RBS_PIPE_DIAMETER_PARAM).AsDouble()
-    
-    if fixture_units == 0:
-        set_line_color_for_element(pipe.Id, document, black)
-        return
     
     min_size = 0
 
@@ -78,14 +34,14 @@ def colorize_one_pipe(pipe, document):
         set_line_color_for_element(pipe.Id, document, data.color)
         break
         
-def colorize_all_pipes(document):
+def colorize_all_pipes(document, pipe_data):
     pipe_collector = DB.FilteredElementCollector(document).OfCategory(DB.BuiltInCategory.OST_PipeCurves).WhereElementIsNotElementType()
         
     t = DB.Transaction(document, 'Pipe Colorizing')
     t.Start()
 
     for pipe in pipe_collector:
-        colorize_one_pipe(pipe, document)
+        colorize_one_pipe(pipe, document, pipe_data)
 
     t.Commit()
     t.Dispose()
@@ -103,8 +59,9 @@ def decolorize_all_pipes(document):
     t.Dispose()
 
 class PipeGraphicsUpdater(DB.IUpdater):
-    def __init__(self, application_id):
+    def __init__(self, application_id, pipe_data):
         self.app_id = application_id
+        self.pipe_data = pipe_data
         self.updater_id = DB.UpdaterId(application_id, Guid("d8e9b0e5-fd6f-40b6-9924-601a3b447787"))
 
     def Execute(self, data):
@@ -115,7 +72,7 @@ class PipeGraphicsUpdater(DB.IUpdater):
         for pipe_id in pipe_ids:
             pipe = document.GetElement(pipe_id)
             
-            colorize_one_pipe(pipe, document)
+            colorize_one_pipe(pipe, document, self.pipe_data)
             
             
     def GetAdditionalInformation(self):
@@ -130,57 +87,58 @@ class PipeGraphicsUpdater(DB.IUpdater):
     def GetUpdaterName(self):
         return "Pipe Graphics Updater"
 
-def register_pipe_graphics_updater():
+def register_pipe_graphics_updater(pipe_data):
     pipe_filter = DB.ElementCategoryFilter(DB.BuiltInCategory.OST_PipeCurves)
-    pipe_updater = PipeGraphicsUpdater(HOST_APP.app.ActiveAddInId)
+    pipe_updater = PipeGraphicsUpdater(HOST_APP.app.ActiveAddInId, pipe_data)
     parameter_id = DB.ElementId(DB.BuiltInParameter.RBS_PIPE_DIAMETER_PARAM)
     # Make sure we're not trying to reregister the same updater
-    if DB.UpdaterRegistry.IsUpdaterRegistered(pipe_updater.GetUpdaterId()):
-        DB.UpdaterRegistry.UnregisterUpdater(pipe_updater.GetUpdaterId())
-    DB.UpdaterRegistry.RegisterUpdater(pipe_updater)
-    DB.UpdaterRegistry.SetIsUpdaterOptional(pipe_updater.GetUpdaterId(), True)
-    DB.UpdaterRegistry.AddTrigger(pipe_updater.GetUpdaterId(), pipe_filter, DB.Element.GetChangeTypeParameter(parameter_id))
+    u_r = DB.UpdaterRegistry
+    if u_r.IsUpdaterRegistered(pipe_updater.GetUpdaterId()):
+        u_r.UnregisterUpdater(pipe_updater.GetUpdaterId())
+    u_r.RegisterUpdater(pipe_updater)
+    u_r.SetIsUpdaterOptional(pipe_updater.GetUpdaterId(), True)
+    u_r.AddTrigger(pipe_updater.GetUpdaterId(), pipe_filter, DB.Element.GetChangeTypeParameter(parameter_id))
 
 def unregister_pipe_graphics_updater():
-    pipe_updater = PipeGraphicsUpdater(HOST_APP.app.ActiveAddInId)
+    pipe_updater = PipeGraphicsUpdater(HOST_APP.app.ActiveAddInId, [])
+    
     if DB.UpdaterRegistry.IsUpdaterRegistered(pipe_updater.GetUpdaterId()):
         DB.UpdaterRegistry.UnregisterUpdater(pipe_updater.GetUpdaterId())
 
 class TurnOffAssistant(UI.IExternalEventHandler):
     def Execute(self, uiapp):
-            uidoc = uiapp.ActiveUIDocument
-            document = uidoc.Document
-            unregister_pipe_graphics_updater()
-            decolorize_all_pipes(document)
+        uidoc = uiapp.ActiveUIDocument
+        document = uidoc.Document
+        unregister_pipe_graphics_updater()
+        decolorize_all_pipes(document)
         
     def GetName(self):
         return "Turn Off Pipe Sizing Assistant Event"
 
 turn_off_assistant_event = UI.ExternalEvent.Create(TurnOffAssistant())
 
-def rgb_to_hex(r, g, b):
-    return '#{:02x}{:02x}{:02x}'.format(r, g, b)
-
-class Field:
-    def __init__(self, name, length, color):
+class Size:
+    def __init__(self, color, name, max_fu):
         self.name = name
-        self.length = length
         self.color = color
+        self.max_fu = max_fu
 
-class Window(forms.WPFWindow):
-    def __init__(self):
-        wpf.LoadComponent(self, op.join(op.dirname(__file__),'ui.xaml'))
-
-        fields = []
+class SizingWindow(forms.WPFWindow):
+    def __init__(self, pipe_data):
+        wpf.LoadComponent(self, op.join(op.dirname(__file__),'pipe_sizing_window.xaml'))
+        self.pipe_data = pipe_data
+        self.set_size_list()
         
-        for pipe_size in pipe_sizes:
-            color = Media.SolidColorBrush(Media.Color.FromArgb(0xFF, pipe_size.color.Red, pipe_size.color.Green, pipe_size.color.Blue))
-            fields.append(Field(pipe_size.name, 100, color))
+    def set_size_list(self):
+        sizes = [Size(white, 'Size', 'Max FU')]
+        
+        for data in self.pipe_data:
+            color = Media.SolidColorBrush(Media.Color.FromArgb(0xFF, data.color.Red, data.color.Green, data.color.Blue))
+            max_fu_value =  int(data.max_fu) if data.max_fu < 99999 else "Infinity"
+            max_fu_display = '({})'.format(max_fu_value)
+            sizes.append(Size(color, data.name, max_fu_display))
 
-        self.FieldsListBox.ItemsSource = fields
+        self.SizeListBox.ItemsSource = sizes
 
     def window_closing(self, sender, args):
-            turn_off_assistant_event.Raise()
-
-    def something_click(self, sender, args):
-            turn_off_assistant_event.Raise()
+        turn_off_assistant_event.Raise()

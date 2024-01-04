@@ -1,0 +1,26 @@
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ShowInTaskbar="True" ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        HorizontalContentAlignment="Center"
+        Title="Pipe Sizing Assistant" Width="300" Height="600" Closing="window_closing" Topmost="True"
+        >
+    <StackPanel>
+        <ListBox x:Name="SizeListBox">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Label Width="20" Height="20" Margin="5,0,0,0" Background="{Binding color}"/>
+                        <Label Width="60" Margin="5,0,0,0" Content="{Binding name}" VerticalAlignment="Center" FontWeight="Bold"/>
+                        <Label Width="60" Margin="5,0,0,0" Content="{Binding max_fu}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Vertical"  />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
+    </StackPanel>
+</Window>
