@@ -3,7 +3,6 @@ from System import Guid
 from pyrevit.framework import wpf
 import os.path as op
 from  System.Windows import Media
-from pipe_data_utilities import get_pipe_data
 
 white = DB.Color(255,255,255)
 

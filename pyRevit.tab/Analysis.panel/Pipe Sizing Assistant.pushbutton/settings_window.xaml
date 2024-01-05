@@ -3,24 +3,47 @@
         ShowInTaskbar="True" ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen"
         HorizontalContentAlignment="Center"
-        Title="Pipe Sizing Assistant" Width="300" Height="300" Topmost="True"
+        Title="Pipe Sizing Assistant" Width="325" Height="300" Topmost="True"
         >
-    <StackPanel>
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Label Content="Pressure Loss per 100 Feet of Pipe" HorizontalAlignment="Left"/>
-            <TextBox x:Name="pressure_loss_input" HorizontalAlignment="Center" TextWrapping="Wrap" Text="1"  Width="50"/>
+    <StackPanel Margin="10">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10">
+            <Label Content="Pressure Loss per 100 Feet of Pipe" FontSize="14" HorizontalAlignment="Left"/>
+            <TextBox x:Name="pressure_loss_input" FontSize="14" HorizontalContentAlignment="Center" 
+                    VerticalContentAlignment="Center" TextWrapping="Wrap" Text="1"  Width="30" Margin="10,0,0,0"/>
         </StackPanel>
-        <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-            <Label Content="Predominent Flush Type Fixture" HorizontalAlignment="Left"/>
-            <WrapPanel Orientation="Horizontal"  >
-                <RadioButton x:Name="flush_tank_rb" GroupName="flush_type" IsChecked="True" Margin="15,0,0,0">
+        <StackPanel Orientation="Vertical" VerticalAlignment="Center" Margin="10">
+            <Label Content="Predominent Flush Type Fixture" FontSize="14" HorizontalAlignment="Left"/>
+            <WrapPanel Orientation="Horizontal"  Margin="10">
+                <RadioButton x:Name="flush_tank_rb" GroupName="flush_type" IsChecked="True" FontSize="14" Margin="15,0,0,0">
                     Flush Tank
                 </RadioButton>
-                <RadioButton x:Name="flush_valve_rb" GroupName="flush_type" Margin="15,0,0,0">
+                <RadioButton x:Name="flush_valve_rb" GroupName="flush_type" FontSize="14" Margin="15,0,0,0">
                     Flush Valve
                 </RadioButton>
             </WrapPanel>
+            <WrapPanel Orientation="Horizontal"  Margin="10">
+                <StackPanel Orientation="Vertical" Margin="0,0,10,0">
+                    <Label Content="Pipe Material" FontSize="14" HorizontalAlignment="Left"/>
+                    <ComboBox x:Name="material_cmb"
+                            FontSize="14"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            VerticalContentAlignment="Center"
+                            Padding="15,0,0,0"
+                            IsEditable="True"/> 
+                </StackPanel>
+                <StackPanel Orientation="Vertical">
+                    <Label Content="Plumbing Code" FontSize="14" HorizontalAlignment="Left"/>
+                    <ComboBox x:Name="code_cmb"
+                            FontSize="14"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            VerticalContentAlignment="Center"
+                            Padding="15,0,0,0"
+                            IsEditable="True"/> 
+                </StackPanel>
+            </WrapPanel>
         </StackPanel>
-        <Button Click="start_sizing" Content="Start Sizing"/>
+        <Button Click="start_sizing" Content="Start Sizing" Margin="10"/>
     </StackPanel>
 </Window>

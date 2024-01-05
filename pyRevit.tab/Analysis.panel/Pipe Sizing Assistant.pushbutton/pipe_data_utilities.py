@@ -28,10 +28,9 @@ class PipeData:
         self.max_fu = max_fu
         self.color = color
 
-def get_csv_file_path(file_name):
+def get_csv_file_path(code_directory, material_directory, ft_or_fm):
     absolute_path = os.path.dirname(os.path.abspath(__file__))
-    relative_path = "fixture_unit_values\Wisconsin\Domestic-Water\Copper_Type-L"
-    file_path = os.path.join(absolute_path, relative_path, file_name)
+    file_path = os.path.join(absolute_path, "fixture_unit_values", code_directory, "Domestic-Water", material_directory, ft_or_fm + ".csv")
     return file_path
 
 def initialize_pipe_data_array(row):
@@ -45,7 +44,7 @@ def initialize_pipe_data_array(row):
         # Use the colors we have declared and loop back to the start once we reach the end of the list
         pipe_color = pipe_colors[i % len(pipe_colors)]
 
-        pipe_data.append(PipeData(pipe_name, pipe_size, None, pipe_color))
+        pipe_data.append(PipeData(pipe_name, pipe_size, 0, pipe_color))
     return pipe_data
 
 def process_row_values(row):
@@ -62,12 +61,12 @@ def process_row_values(row):
 
     return processed_row
 
-def get_pipe_data(pressure_loss):
+def get_pipe_data(pressure_loss, is_flush_tank, material_directory, code_directory):
     pipe_data = []
     
-    file_name = "FT.csv"
+    ft_or_fm = "FT" if is_flush_tank else "FM"
 
-    csv_path = get_csv_file_path(file_name)
+    csv_path = get_csv_file_path("Wisconsin", material_directory, ft_or_fm)
     
     with io.open(csv_path, encoding='utf-8-sig') as csvfile:
         reader = csv.reader(csvfile, dialect="excel")
