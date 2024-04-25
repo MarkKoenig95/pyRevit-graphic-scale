@@ -159,7 +159,10 @@ def update_all_scale_values(app, doc, view_collector_param):
     t.Start()
 
     for view in view_collector:
-        update_one_scale_value(view)
+        try:
+            update_one_scale_value(view)
+        except:
+            continue
     t.Commit()
     t.Dispose()
 
@@ -177,7 +180,10 @@ class GraphicScaleUpdater(DB.IUpdater):
             
             view = doc.GetElement(view_id)
 
-            update_one_scale_value(view)
+            try:
+                update_one_scale_value(view)
+            except:
+                continue
             
             
     def GetAdditionalInformation(self):
